@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="UPSC Tracker"/>
+<title>UPSC Prelims Tracker</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c27;
+    --border: #2a2a3d;
+    --accent: #f97316;
+    --accent2: #10b981;
+    --gold: #fbbf24;
+    --text: #f1f0ee;
+    --muted: #6b6b85;
+    --danger: #ef4444;
+    --history: #a78bfa;
+    --geo: #34d399;
+    --polity: #60a5fa;
+    --economy: #fbbf24;
+    --env: #4ade80;
+    --science: #f472b6;
+    --current: #fb923c;
+    --csat: #38bdf8;
+    --revision: #c084fc;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* SETUP SCREEN */
+  #setup-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: radial-gradient(ellipse at 50% 0%, #1a1030 0%, var(--bg) 70%);
+  }
+  #setup-screen .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  #setup-screen .subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+  .setup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    width: 100%;
+    max-width: 440px;
+  }
+  .setup-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+  }
+  .setup-card p {
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+  .field-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .setup-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+  .setup-input:focus { border-color: var(--accent); }
+  .setup-input::placeholder { color: var(--muted); }
+  .hint-box {
+    background: #1a1a2e;
+    border: 1px solid #2d2d4e;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 20px;
+    font-size: 0.78rem;
+    color: #9999bb;
+    line-height: 1.7;
+  }
+  .hint-box strong { color: var(--accent); }
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), #ea580c);
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+  .btn-secondary {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--text); }
+
+  /* MAIN APP */
+  #app { display: none; }
+
+  /* TOP HEADER */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+  .header-title span { color: var(--accent); }
+  .sync-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: border-color 0.2s;
+  }
+  .sync-btn:hover { border-color: var(--accent2); }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); }
+  .sync-dot.syncing { animation: pulse 1s infinite; }
+  .sync-dot.error { background: var(--danger); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* PROGRESS BAR */
+  .progress-section { margin-bottom: 4px; }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .progress-label { font-size: 0.72rem; color: var(--muted); }
+  .progress-count { font-size: 0.8rem; font-weight: 600; color: var(--accent); }
+  .progress-bar-bg {
+    height: 5px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+    border-radius: 99px;
+    transition: width 0.6s ease;
+  }
+
+  /* MONTH TABS */
+  .month-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 16px 20px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .month-tabs::-webkit-scrollbar { display: none; }
+  .month-tab {
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .month-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .month-tab .tab-check { font-size: 0.65rem; margin-left: 4px; }
+
+  /* CONTENT */
+  .content { padding: 16px 20px 100px; }
+
+  /* MONTH SECTION */
+  .month-section { display: none; }
+  .month-section.active { display: block; }
+
+  .month-header {
+    margin-bottom: 16px;
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .month-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+  }
+  .month-number { font-size: 0.7rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+  .month-name { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin: 4px 0; }
+  .month-desc { font-size: 0.8rem; color: var(--muted); }
+  .month-progress {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .month-progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .month-progress-fill {
+    height: 100%;
+    background: var(--accent2);
+    border-radius: 99px;
+    transition: width 0.4s;
+  }
+  .month-progress-text { font-size: 0.72rem; color: var(--accent2); font-weight: 600; white-space: nowrap; }
+
+  /* WEEK */
+  .week-section { margin-bottom: 20px; }
+  .week-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  /* DAY CARD */
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .day-card:active { transform: scale(0.99); }
+  .day-card.completed {
+    border-color: transparent;
+    background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03));
+    border-color: rgba(16,185,129,0.25);
+  }
+  .day-card.today {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 4px 20px rgba(249,115,22,0.15);
+  }
+  .day-card.sunday {
+    background: linear-gradient(135deg, rgba(192,132,252,0.08), transparent);
+    border-color: rgba(192,132,252,0.2);
+  }
+
+  /* Subject color left bar */
+  .day-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 14px 0 0 14px;
+    background: var(--muted);
+  }
+  .day-card.subject-history::before { background: var(--history); }
+  .day-card.subject-geography::before { background: var(--geo); }
+  .day-card.subject-polity::before { background: var(--polity); }
+  .day-card.subject-economy::before { background: var(--economy); }
+  .day-card.subject-environment::before { background: var(--env); }
+  .day-card.subject-science::before { background: var(--science); }
+  .day-card.subject-current::before { background: var(--current); }
+  .day-card.subject-csat::before { background: var(--csat); }
+  .day-card.subject-revision::before { background: var(--revision); }
+
+  /* Checkbox */
+  .day-checkbox {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    margin-top: 1px;
+  }
+  .day-card.completed .day-checkbox {
+    background: var(--accent2);
+    border-color: var(--accent2);
+  }
+  .day-checkbox svg { display: none; }
+  .day-card.completed .day-checkbox svg { display: block; }
+
+  /* Day info */
+  .day-info { flex: 1; min-width: 0; }
+  .day-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .day-number {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .day-tag {
+    font-size: 0.62rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .tag-history { background: rgba(167,139,250,0.15); color: var(--history); }
+  .tag-geography { background: rgba(52,211,153,0.15); color: var(--geo); }
+  .tag-polity { background: rgba(96,165,250,0.15); color: var(--polity); }
+  .tag-economy { background: rgba(251,191,36,0.15); color: var(--economy); }
+  .tag-environment { background: rgba(74,222,128,0.15); color: var(--env); }
+  .tag-science { background: rgba(244,114,182,0.15); color: var(--science); }
+  .tag-current { background: rgba(251,146,60,0.15); color: var(--current); }
+  .tag-csat { background: rgba(56,189,248,0.15); color: var(--csat); }
+  .tag-revision { background: rgba(192,132,252,0.15); color: var(--revision); }
+  .tag-sunday { background: rgba(192,132,252,0.15); color: var(--revision); }
+
+  .today-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    background: var(--accent);
+    color: white;
+    padding: 2px 7px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .day-topic {
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .day-card.completed .day-topic {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  .day-youtube {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    color: #f87171;
+    text-decoration: none;
+    margin-top: 4px;
+    cursor: pointer;
+  }
+  .day-youtube:hover { text-decoration: underline; }
+
+  /* TODAY SHORTCUT */
+  .today-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--accent), #ea580c);
+    border: none;
+    border-radius: 16px;
+    padding: 14px 20px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(249,115,22,0.4);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 200;
+    transition: transform 0.2s;
+  }
+  .today-fab:active { transform: scale(0.96); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 0.85rem;
+    color: var(--text);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 300;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-label { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+  /* SETTINGS */
+  .settings-link {
+    position: fixed;
+    top: 16px;
+    right: 70px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    cursor: pointer;
+    z-index: 150;
+  }
+
+  /* Loading overlay */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,15,0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    display: none;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: var(--muted); font-size: 0.85rem; margin-top: 16px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="logo">🏛️ UPSC</div>
+  <p class="subtitle">9-Month Prelims Tracker — Syncs with GitHub</p>
+  <div class="setup-card">
+    <h2>Connect Your GitHub</h2>
+    <p>Your progress will be saved privately on your GitHub repository. You only need to set this up once.</p>
+
+    <div class="field-label">GitHub Username</div>
+    <input class="setup-input" id="gh-username" placeholder="e.g. yourname" autocomplete="off" autocorrect="off" autocapitalize="off"/>
+
+    <div class="field-label">Repository Name</div>
+    <input class="setup-input" id="gh-repo" placeholder="e.g. upsc-prep" autocomplete="off" autocorrect="off" autocapitalize="off"/>
+
+    <div class="field-label">Personal Access Token</div>
+    <input class="setup-input" id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off"/>
+
+    <div class="hint-box">
+      <strong>How to get your token:</strong><br>
+      1. Go to github.com → Settings<br>
+      2. Developer settings → Personal access tokens → Tokens (classic)<br>
+      3. Generate new token → select <strong>repo</strong> scope<br>
+      4. Copy and paste token above<br><br>
+      <strong>File name in repo:</strong> upsc_progress.json (auto-created)
+    </div>
+
+    <button class="btn-primary" onclick="setupGitHub()">🚀 Start Tracking</button>
+    <button class="btn-secondary" onclick="startOffline()">Use Offline (no GitHub sync)</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="header">
+    <div class="header-top">
+      <div class="header-title">🏛️ <span>UPSC</span> Prelims</div>
+      <button class="sync-btn" onclick="syncToGitHub()" id="sync-btn">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-label">Sync</span>
+      </button>
+    </div>
+    <div class="progress-section">
+      <div class="progress-meta">
+        <span class="progress-label">Overall Progress</span>
+        <span class="progress-count" id="overall-count">0 / 270 days</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="overall-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="month-tabs" id="month-tabs"></div>
+
+  <div class="content">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-done">0</div>
+        <div class="stat-label">Days Done</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-streak">0</div>
+        <div class="stat-label">Day Streak 🔥</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-left">270</div>
+        <div class="stat-label">Days Left</div>
+      </div>
+    </div>
+    <div id="months-container"></div>
+  </div>
+
+  <button class="today-fab" onclick="goToToday()">📍 Today's Task</button>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Connecting to GitHub...</div>
+</div>
+
+<script>
+// ============================================================
+// FULL 270-DAY SCHEDULE DATA
+// ============================================================
+const SCHEDULE = [
+  // MONTH 1 — Ancient History
+  { month:1, week:1, day:1, topic:"Introduction to History — Sources, Types, Epigraphy", subject:"history", youtube:"Sources of Ancient Indian History UPSC" },
+  { month:1, week:1, day:2, topic:"Prehistoric India — Paleolithic, Mesolithic, Neolithic", subject:"history", youtube:"Prehistoric India UPSC" },
+  { month:1, week:1, day:3, topic:"Indus Valley Civilization — Origin, Sites, Features", subject:"history", youtube:"Indus Valley Civilization UPSC part 1" },
+  { month:1, week:1, day:4, topic:"IVC — Town Planning, Trade, Religion, Decline", subject:"history", youtube:"Indus Valley Civilization UPSC part 2" },
+  { month:1, week:1, day:5, topic:"IVC — Important Sites (Mohenjo-daro, Harappa, Lothal, Dholavira)", subject:"history", youtube:"IVC important sites UPSC map" },
+  { month:1, week:1, day:6, topic:"Practice — 30 MCQs on Prehistoric + IVC", subject:"history", youtube:"IVC UPSC MCQ practice" },
+  { month:1, week:1, day:7, topic:"SUNDAY REVISION — Re-read Week 1 notes + underline key facts", subject:"revision", youtube:"Ancient India revision UPSC" },
+  { month:1, week:2, day:8, topic:"Early Vedic Period — Rig Veda, Society, Economy", subject:"history", youtube:"Vedic Period UPSC part 1" },
+  { month:1, week:2, day:9, topic:"Later Vedic Period — Upanishads, Varna system, Changes", subject:"history", youtube:"Later Vedic Period UPSC" },
+  { month:1, week:2, day:10, topic:"Jainism — Mahavira, Teachings, Spread, Significance", subject:"history", youtube:"Jainism UPSC complete" },
+  { month:1, week:2, day:11, topic:"Buddhism — Gautama Buddha, 8-fold path, Councils", subject:"history", youtube:"Buddhism UPSC complete" },
+  { month:1, week:2, day:12, topic:"Buddhism — Hinayana, Mahayana, Vajrayana, Spread in Asia", subject:"history", youtube:"Buddhism schools UPSC" },
+  { month:1, week:2, day:13, topic:"Practice — 30 MCQs on Vedic + Jainism + Buddhism", subject:"history", youtube:"Vedic period Buddhism UPSC MCQ" },
+  { month:1, week:2, day:14, topic:"SUNDAY REVISION — Revise Week 2 notes", subject:"revision", youtube:"Vedic period revision UPSC" },
+  { month:1, week:3, day:15, topic:"Pre-Mauryan — Mahajanapadas, Alexander's Invasion", subject:"history", youtube:"Mahajanapadas UPSC" },
+  { month:1, week:3, day:16, topic:"Mauryan Empire — Chandragupta, Kautilya, Arthashastra", subject:"history", youtube:"Mauryan Empire UPSC part 1" },
+  { month:1, week:3, day:17, topic:"Ashoka — Life, Dhamma, Edicts, Kalinga War", subject:"history", youtube:"Ashoka UPSC complete" },
+  { month:1, week:3, day:18, topic:"Ashoka's Edicts — Rock edicts, Pillar edicts, locations on map", subject:"history", youtube:"Ashoka Edicts UPSC map" },
+  { month:1, week:3, day:19, topic:"Mauryan Administration, Economy, Art & Decline", subject:"history", youtube:"Mauryan administration UPSC" },
+  { month:1, week:3, day:20, topic:"Practice — 30 MCQs on Mauryan Empire", subject:"history", youtube:"Mauryan Empire UPSC MCQ" },
+  { month:1, week:3, day:21, topic:"SUNDAY REVISION — Revise Week 3 notes", subject:"revision", youtube:"Mauryan Empire revision UPSC" },
+  { month:1, week:4, day:22, topic:"Post-Mauryan — Sungas, Satavahanas, Kushanas", subject:"history", youtube:"Post Mauryan kingdoms UPSC" },
+  { month:1, week:4, day:23, topic:"Sangam Age — Tamil Literature, Sangam polity", subject:"history", youtube:"Sangam Age UPSC" },
+  { month:1, week:4, day:24, topic:"Gupta Empire — Chandragupta I, Samudragupta", subject:"history", youtube:"Gupta Empire UPSC part 1" },
+  { month:1, week:4, day:25, topic:"Gupta — Golden Age, Art, Science, Literature", subject:"history", youtube:"Gupta Golden Age UPSC" },
+  { month:1, week:4, day:26, topic:"Post-Gupta — Harshavardhana, Chalukyas, Pallavas", subject:"history", youtube:"Harshavardhana UPSC" },
+  { month:1, week:4, day:27, topic:"Practice — 30 MCQs on Gupta + Post-Gupta", subject:"history", youtube:"Gupta Empire UPSC MCQ" },
+  { month:1, week:4, day:28, topic:"MONTH 1 MOCK TEST — 50 MCQs Ancient History + Revision", subject:"revision", youtube:"Ancient History UPSC mock test" },
+
+  // MONTH 2 — Medieval History
+  { month:2, week:5, day:29, topic:"Arab Invasion, Mahmud Ghazni, Muhammad Ghori", subject:"history", youtube:"Arab invasion India UPSC" },
+  { month:2, week:5, day:30, topic:"Delhi Sultanate — Slave Dynasty (Qutub-ud-din, Iltutmish, Razia)", subject:"history", youtube:"Slave Dynasty UPSC" },
+  { month:2, week:5, day:31, topic:"Delhi Sultanate — Khilji Dynasty (Alauddin Khilji, Market reforms)", subject:"history", youtube:"Khilji Dynasty UPSC" },
+  { month:2, week:5, day:32, topic:"Delhi Sultanate — Tughlaq Dynasty (Muhammad Bin Tughlaq)", subject:"history", youtube:"Tughlaq Dynasty UPSC" },
+  { month:2, week:5, day:33, topic:"Delhi Sultanate — Sayyid, Lodi, Administration, Decline", subject:"history", youtube:"Delhi Sultanate decline UPSC" },
+  { month:2, week:5, day:34, topic:"Practice — 30 MCQs on Delhi Sultanate", subject:"history", youtube:"Delhi Sultanate UPSC MCQ" },
+  { month:2, week:5, day:35, topic:"SUNDAY REVISION — Revise Week 5 notes", subject:"revision", youtube:"Delhi Sultanate revision UPSC" },
+  { month:2, week:6, day:36, topic:"Vijayanagara Empire — Krishnadevaraya, Administration, Art", subject:"history", youtube:"Vijayanagara Empire UPSC" },
+  { month:2, week:6, day:37, topic:"Bahmani Kingdom & Deccan Sultanates", subject:"history", youtube:"Bahmani Kingdom UPSC" },
+  { month:2, week:6, day:38, topic:"Bhakti Movement — Kabir, Mirabai, Tukaram, Chaitanya", subject:"history", youtube:"Bhakti Movement UPSC complete" },
+  { month:2, week:6, day:39, topic:"Sufi Movement — Orders, Chishti, Suhrawardi, Significance", subject:"history", youtube:"Sufi Movement UPSC" },
+  { month:2, week:6, day:40, topic:"Regional Kingdoms — Bengal, Rajputs, Kashmir", subject:"history", youtube:"Regional Kingdoms Medieval India UPSC" },
+  { month:2, week:6, day:41, topic:"Practice — 30 MCQs on Bhakti + Sufi + Regional kingdoms", subject:"history", youtube:"Bhakti Sufi UPSC MCQ" },
+  { month:2, week:6, day:42, topic:"SUNDAY REVISION — Revise Week 6 notes", subject:"revision", youtube:"Bhakti Movement revision UPSC" },
+  { month:2, week:7, day:43, topic:"Babur — Battles of Panipat, Khanwa, Establishment of Mughal", subject:"history", youtube:"Babur UPSC" },
+  { month:2, week:7, day:44, topic:"Humayun + Sher Shah Suri — Administration, Reforms, Grand Trunk Road", subject:"history", youtube:"Sher Shah Suri UPSC" },
+  { month:2, week:7, day:45, topic:"Akbar — Administration, Din-i-Ilahi, Navratnas, Mansabdari", subject:"history", youtube:"Akbar UPSC complete" },
+  { month:2, week:7, day:46, topic:"Jahangir, Shah Jahan — Art, Architecture, Taj Mahal", subject:"history", youtube:"Jahangir Shah Jahan UPSC" },
+  { month:2, week:7, day:47, topic:"Aurangzeb — Policies, Deccan Wars, Decline of Mughals", subject:"history", youtube:"Aurangzeb UPSC" },
+  { month:2, week:7, day:48, topic:"Mughal Administration, Economy, Art & Architecture overview", subject:"history", youtube:"Mughal administration UPSC" },
+  { month:2, week:7, day:49, topic:"SUNDAY REVISION — Revise Week 7 notes", subject:"revision", youtube:"Mughal Empire revision UPSC" },
+  { month:2, week:8, day:50, topic:"Temple Architecture — Nagara, Dravida, Vesara styles", subject:"history", youtube:"Temple architecture UPSC" },
+  { month:2, week:8, day:51, topic:"Mughal Architecture — Humayun tomb, Red Fort, Taj Mahal", subject:"history", youtube:"Mughal architecture UPSC" },
+  { month:2, week:8, day:52, topic:"Paintings — Mughal, Rajput, Pahari, Deccan schools", subject:"history", youtube:"Indian painting schools UPSC" },
+  { month:2, week:8, day:53, topic:"Medieval Literature — Tulsidas, Amir Khusrau, Kabir, Mirabai", subject:"history", youtube:"Medieval literature India UPSC" },
+  { month:2, week:8, day:54, topic:"Music & Dance forms — Classical origins, Medieval development", subject:"history", youtube:"Classical music dance UPSC" },
+  { month:2, week:8, day:55, topic:"Practice — 30 MCQs on Mughal Art & Architecture", subject:"history", youtube:"Medieval art architecture UPSC MCQ" },
+  { month:2, week:8, day:56, topic:"MONTH 2 MOCK TEST — 50 MCQs Medieval History + Revision", subject:"revision", youtube:"Medieval History UPSC mock test" },
+
+  // MONTH 3 — Modern History
+  { month:3, week:9, day:57, topic:"European Arrival — Portuguese, Dutch, French, British in India", subject:"history", youtube:"European companies India UPSC" },
+  { month:3, week:9, day:58, topic:"Battle of Plassey 1757, Battle of Buxar 1764 — Significance", subject:"history", youtube:"Battle of Plassey Buxar UPSC" },
+  { month:3, week:9, day:59, topic:"British Expansion — Subsidiary Alliance, Doctrine of Lapse", subject:"history", youtube:"British expansion policies UPSC" },
+  { month:3, week:9, day:60, topic:"Land Revenue Systems — Zamindari, Ryotwari, Mahalwari", subject:"history", youtube:"Land revenue systems UPSC" },
+  { month:3, week:9, day:61, topic:"Tribal and Peasant Revolts — Santhals, Indigo revolt, Moplah", subject:"history", youtube:"Peasant revolts India UPSC" },
+  { month:3, week:9, day:62, topic:"Revolt of 1857 — Causes, Events, Leaders, Results, Significance", subject:"history", youtube:"1857 revolt UPSC complete" },
+  { month:3, week:9, day:63, topic:"SUNDAY REVISION — Revise Week 9 notes", subject:"revision", youtube:"Modern history early UPSC revision" },
+  { month:3, week:10, day:64, topic:"Social Reform — Raja Ram Mohan Roy, Brahmo Samaj", subject:"history", youtube:"Social reform movements UPSC" },
+  { month:3, week:10, day:65, topic:"Arya Samaj, Prarthana Samaj, Ramakrishna Mission, Vivekananda", subject:"history", youtube:"Arya Samaj UPSC" },
+  { month:3, week:10, day:66, topic:"Women Reforms — Savitribai Phule, Pandita Ramabai, widow remarriage", subject:"history", youtube:"Women reform movement UPSC" },
+  { month:3, week:10, day:67, topic:"Formation of INC 1885 — Moderates (Gokhale, Dadabhai Naoroji)", subject:"history", youtube:"Indian National Congress formation UPSC" },
+  { month:3, week:10, day:68, topic:"Extremists — Bal Gangadhar Tilak, Lal Pal Bal trio", subject:"history", youtube:"Extremists moderates UPSC" },
+  { month:3, week:10, day:69, topic:"Partition of Bengal 1905, Swadeshi Movement", subject:"history", youtube:"Partition of Bengal UPSC" },
+  { month:3, week:10, day:70, topic:"SUNDAY REVISION — Revise Week 10 notes", subject:"revision", youtube:"Social reforms UPSC revision" },
+  { month:3, week:11, day:71, topic:"Gandhi — Early life, South Africa, Champaran, Khilafat", subject:"history", youtube:"Gandhi UPSC complete" },
+  { month:3, week:11, day:72, topic:"Non-Cooperation Movement 1920 — Causes, Events, Withdrawal", subject:"history", youtube:"Non Cooperation Movement UPSC" },
+  { month:3, week:11, day:73, topic:"Civil Disobedience Movement 1930 — Dandi March, Salt Satyagraha", subject:"history", youtube:"Civil Disobedience Movement UPSC" },
+  { month:3, week:11, day:74, topic:"Quit India Movement 1942 — August Kranti, Do or Die", subject:"history", youtube:"Quit India Movement UPSC" },
+  { month:3, week:11, day:75, topic:"Revolutionary Nationalism — Bhagat Singh, Subhas Chandra Bose, INA", subject:"history", youtube:"Bhagat Singh Subhas Bose UPSC" },
+  { month:3, week:11, day:76, topic:"Round Table Conferences, Gandhi-Irwin Pact, Communal Award", subject:"history", youtube:"Round Table Conference UPSC" },
+  { month:3, week:11, day:77, topic:"SUNDAY REVISION — Revise Week 11 notes", subject:"revision", youtube:"Gandhi mass movements UPSC revision" },
+  { month:3, week:12, day:78, topic:"Government of India Acts — 1919, 1935 — key provisions", subject:"history", youtube:"Government of India Act UPSC" },
+  { month:3, week:12, day:79, topic:"World War II impact on India, INA, Azad Hind Fauj", subject:"history", youtube:"INA Azad Hind Fauj UPSC" },
+  { month:3, week:12, day:80, topic:"Cabinet Mission, Mountbatten Plan, Partition of India", subject:"history", youtube:"Partition of India UPSC" },
+  { month:3, week:12, day:81, topic:"Integration of Princely States — Sardar Patel's role", subject:"history", youtube:"Princely states integration UPSC" },
+  { month:3, week:12, day:82, topic:"British economic impact — Drain of wealth, deindustrialization", subject:"history", youtube:"British economic impact India UPSC" },
+  { month:3, week:12, day:83, topic:"Practice — 30 MCQs on Modern History", subject:"history", youtube:"Modern History UPSC MCQ" },
+  { month:3, week:12, day:84, topic:"MONTH 3 MOCK TEST — 60 MCQs Modern History + Revision", subject:"revision", youtube:"Modern History UPSC mock test" },
+
+  // MONTH 4 — Geography
+  { month:4, week:13, day:85, topic:"Universe, Solar System, Origin of Earth, Geological time", subject:"geography", youtube:"Origin of Earth UPSC" },
+  { month:4, week:13, day:86, topic:"Interior of Earth — Crust, Mantle, Core, Types of rocks", subject:"geography", youtube:"Interior of Earth UPSC" },
+  { month:4, week:13, day:87, topic:"Earthquakes — Causes, Types, Seismic waves, Richter scale, zones", subject:"geography", youtube:"Earthquakes UPSC complete" },
+  { month:4, week:13, day:88, topic:"Volcanoes — Types, Distribution, Ring of Fire, Hot spots", subject:"geography", youtube:"Volcanoes UPSC" },
+  { month:4, week:13, day:89, topic:"Landforms — Mountains, Plateaus, Plains — formation processes", subject:"geography", youtube:"Landforms UPSC" },
+  { month:4, week:13, day:90, topic:"Folding, Faulting, Erosion, Weathering — agents of change", subject:"geography", youtube:"Folding faulting UPSC" },
+  { month:4, week:13, day:91, topic:"SUNDAY REVISION — Revise Week 13 notes", subject:"revision", youtube:"Physical geography revision UPSC" },
+  { month:4, week:14, day:92, topic:"Atmosphere — Layers, Composition, Pressure belts", subject:"geography", youtube:"Atmosphere layers UPSC" },
+  { month:4, week:14, day:93, topic:"Winds — Trade winds, Westerlies, Jet streams, Local winds", subject:"geography", youtube:"Winds UPSC complete" },
+  { month:4, week:14, day:94, topic:"Climate — Koppen classification, World climate types", subject:"geography", youtube:"Koppen climate classification UPSC" },
+  { month:4, week:14, day:95, topic:"Monsoon — Indian monsoon mechanism, onset, retreat, variability", subject:"geography", youtube:"Indian Monsoon UPSC complete" },
+  { month:4, week:14, day:96, topic:"Cyclones — Tropical vs Temperate, Bay of Bengal vs Arabian Sea", subject:"geography", youtube:"Cyclones UPSC" },
+  { month:4, week:14, day:97, topic:"El Nino, La Nina, Indian Ocean Dipole — effects on India", subject:"geography", youtube:"El Nino La Nina UPSC" },
+  { month:4, week:14, day:98, topic:"SUNDAY REVISION — Revise Week 14 notes", subject:"revision", youtube:"Climate geography UPSC revision" },
+  { month:4, week:15, day:99, topic:"Ocean — Relief, Currents (warm + cold), Tides", subject:"geography", youtube:"Ocean currents UPSC" },
+  { month:4, week:15, day:100, topic:"Coral Reefs, Mangroves — Types, Distribution, Importance", subject:"geography", youtube:"Coral reefs UPSC" },
+  { month:4, week:15, day:101, topic:"World Deserts — Sahara, Atacama, Thar — Formation & features", subject:"geography", youtube:"World deserts UPSC" },
+  { month:4, week:15, day:102, topic:"World Rivers — Amazon, Nile, Congo, Mississippi — importance", subject:"geography", youtube:"World rivers UPSC" },
+  { month:4, week:15, day:103, topic:"World Mountains, Continental drift, Plate tectonics", subject:"geography", youtube:"Plate tectonics UPSC" },
+  { month:4, week:15, day:104, topic:"Practice — 30 MCQs Physical + World Geography", subject:"geography", youtube:"Physical geography UPSC MCQ" },
+  { month:4, week:15, day:105, topic:"SUNDAY REVISION — Revise Week 15 notes", subject:"revision", youtube:"World geography UPSC revision" },
+  { month:4, week:16, day:106, topic:"Physiography of India — Himalayas, Northern Plains, Deccan, Coastal", subject:"geography", youtube:"Physiography of India UPSC" },
+  { month:4, week:16, day:107, topic:"Indian Rivers — Himalayan rivers, Peninsular rivers, tributaries", subject:"geography", youtube:"Indian rivers UPSC complete" },
+  { month:4, week:16, day:108, topic:"Indian Climate — Seasons, Rainfall distribution, drought prone areas", subject:"geography", youtube:"Indian climate UPSC" },
+  { month:4, week:16, day:109, topic:"Indian Soils — Alluvial, Black, Red, Laterite, Arid soils", subject:"geography", youtube:"Indian soils UPSC" },
+  { month:4, week:16, day:110, topic:"Natural Vegetation — Forests types, Grasslands, vegetation zones", subject:"geography", youtube:"Indian vegetation UPSC" },
+  { month:4, week:16, day:111, topic:"Indian Agriculture — Crops, Kharif/Rabi/Zaid seasons, irrigation", subject:"geography", youtube:"Indian agriculture UPSC" },
+  { month:4, week:16, day:112, topic:"MONTH 4 MOCK TEST — 60 MCQs Geography + Revision", subject:"revision", youtube:"Geography UPSC mock test" },
+
+  // MONTH 5 — Polity
+  { month:5, week:17, day:113, topic:"Making of Constitution — Constituent Assembly, Drafting committee", subject:"polity", youtube:"Constituent Assembly UPSC" },
+  { month:5, week:17, day:114, topic:"Preamble — Every word meaning, significance, 42nd amendment", subject:"polity", youtube:"Preamble of India UPSC" },
+  { month:5, week:17, day:115, topic:"Salient Features of Constitution — Federal, Secular, Parliamentary", subject:"polity", youtube:"Features of Indian Constitution UPSC" },
+  { month:5, week:17, day:116, topic:"Fundamental Rights — Articles 12–35, 6 types, importance", subject:"polity", youtube:"Fundamental Rights UPSC complete" },
+  { month:5, week:17, day:117, topic:"Fundamental Rights — Restrictions, 6 Writs (Habeas Corpus, Mandamus etc)", subject:"polity", youtube:"Writs UPSC Habeas Corpus" },
+  { month:5, week:17, day:118, topic:"DPSP — Articles 36–51, types, difference from Fundamental Rights", subject:"polity", youtube:"DPSP UPSC Directive Principles" },
+  { month:5, week:17, day:119, topic:"SUNDAY REVISION — Revise Week 17 notes", subject:"revision", youtube:"Constitution basics UPSC revision" },
+  { month:5, week:18, day:120, topic:"President — Election, Powers, Veto, Ordinance, Pardoning power", subject:"polity", youtube:"President of India UPSC powers" },
+  { month:5, week:18, day:121, topic:"Vice President, Prime Minister — Powers, roles, Article 75", subject:"polity", youtube:"Prime Minister powers UPSC" },
+  { month:5, week:18, day:122, topic:"Council of Ministers — Cabinet, collective responsibility, Article 74", subject:"polity", youtube:"Council of Ministers UPSC" },
+  { month:5, week:18, day:123, topic:"Parliament — Lok Sabha, Rajya Sabha — Composition, powers, differences", subject:"polity", youtube:"Indian Parliament UPSC" },
+  { month:5, week:18, day:124, topic:"Parliamentary procedures — Bills types, Budget, Sessions, Joint sitting", subject:"polity", youtube:"Parliamentary procedures UPSC" },
+  { month:5, week:18, day:125, topic:"Supreme Court — Composition, Jurisdiction types, PIL, Judicial review", subject:"polity", youtube:"Supreme Court UPSC" },
+  { month:5, week:18, day:126, topic:"SUNDAY REVISION — Revise Week 18 notes", subject:"revision", youtube:"Union government UPSC revision" },
+  { month:5, week:19, day:127, topic:"Governor — Powers, Discretionary powers, controversy", subject:"polity", youtube:"Governor UPSC powers" },
+  { month:5, week:19, day:128, topic:"State Legislature — Vidhan Sabha, Vidhan Parishad — composition", subject:"polity", youtube:"State Legislature UPSC" },
+  { month:5, week:19, day:129, topic:"High Courts, Subordinate Courts — jurisdiction, appointments", subject:"polity", youtube:"High Court UPSC jurisdiction" },
+  { month:5, week:19, day:130, topic:"Centre-State Relations — Legislative, Administrative, Financial", subject:"polity", youtube:"Centre State relations UPSC" },
+  { month:5, week:19, day:131, topic:"Emergency Provisions — National (352), State (356), Financial (360)", subject:"polity", youtube:"Emergency provisions UPSC" },
+  { month:5, week:19, day:132, topic:"Inter-State Relations — Interstate Council, Zonal Councils, Water disputes", subject:"polity", youtube:"Interstate relations UPSC" },
+  { month:5, week:19, day:133, topic:"SUNDAY REVISION — Revise Week 19 notes", subject:"revision", youtube:"State government UPSC revision" },
+  { month:5, week:20, day:134, topic:"Election Commission — Powers, EVMs, Model Code of Conduct", subject:"polity", youtube:"Election Commission UPSC" },
+  { month:5, week:20, day:135, topic:"CAG, UPSC, Finance Commission — composition, functions", subject:"polity", youtube:"CAG UPSC Finance Commission" },
+  { month:5, week:20, day:136, topic:"Panchayati Raj — 73rd Amendment, 3-tier system, Gram Sabha", subject:"polity", youtube:"Panchayati Raj UPSC 73rd amendment" },
+  { month:5, week:20, day:137, topic:"Urban Local Bodies — 74th Amendment, Municipalities, Mayor", subject:"polity", youtube:"Urban Local Bodies UPSC" },
+  { month:5, week:20, day:138, topic:"Scheduled Areas, Tribal Areas — 5th and 6th Schedule", subject:"polity", youtube:"Scheduled areas UPSC" },
+  { month:5, week:20, day:139, topic:"Practice — 30 MCQs on Polity", subject:"polity", youtube:"Indian Polity UPSC MCQ" },
+  { month:5, week:20, day:140, topic:"MONTH 5 MOCK TEST — 60 MCQs Polity + Revision", subject:"revision", youtube:"Polity UPSC mock test" },
+
+  // MONTH 6 — Economy
+  { month:6, week:21, day:141, topic:"Basic Concepts — GDP, GNP, NDP, NNP — differences explained", subject:"economy", youtube:"GDP GNP difference UPSC" },
+  { month:6, week:21, day:142, topic:"Types of Economy — Capitalist, Socialist, Mixed economy", subject:"economy", youtube:"Types of economy UPSC" },
+  { month:6, week:21, day:143, topic:"Five Year Plans — Overview, Niti Aayog replacing Planning Commission", subject:"economy", youtube:"Five Year Plans UPSC Niti Aayog" },
+  { month:6, week:21, day:144, topic:"Poverty — Measurement, BPL, poverty line, Tendulkar committee", subject:"economy", youtube:"Poverty in India UPSC" },
+  { month:6, week:21, day:145, topic:"Unemployment — Types, causes, MGNREGA, schemes", subject:"economy", youtube:"Unemployment India UPSC" },
+  { month:6, week:21, day:146, topic:"Human Development Index, GINI coefficient, Sustainable Development Goals", subject:"economy", youtube:"HDI UPSC Human Development" },
+  { month:6, week:21, day:147, topic:"SUNDAY REVISION — Revise Week 21 notes", subject:"revision", youtube:"Economy basics UPSC revision" },
+  { month:6, week:22, day:148, topic:"RBI — Functions, Monetary policy tools, CRR, SLR, Repo, Reverse Repo", subject:"economy", youtube:"RBI functions UPSC" },
+  { month:6, week:22, day:149, topic:"Banking System — Commercial banks, NBFCs, Cooperative banks", subject:"economy", youtube:"Banking system India UPSC" },
+  { month:6, week:22, day:150, topic:"Inflation — Types, WPI, CPI, causes, effects, RBI's role", subject:"economy", youtube:"Inflation UPSC types" },
+  { month:6, week:22, day:151, topic:"Money Supply — M0, M1, M2, M3 — definitions and components", subject:"economy", youtube:"Money supply UPSC" },
+  { month:6, week:22, day:152, topic:"Financial Inclusion — Jan Dhan Yojana, Mudra, digital payments, UPI", subject:"economy", youtube:"Financial inclusion UPSC" },
+  { month:6, week:22, day:153, topic:"Capital Markets — Stock exchange, SEBI, Bonds, Mutual funds, IPO", subject:"economy", youtube:"Capital market UPSC SEBI" },
+  { month:6, week:22, day:154, topic:"SUNDAY REVISION — Revise Week 22 notes", subject:"revision", youtube:"Banking monetary policy UPSC revision" },
+  { month:6, week:23, day:155, topic:"Union Budget — Components, Revenue vs Capital accounts", subject:"economy", youtube:"Union Budget UPSC" },
+  { month:6, week:23, day:156, topic:"Types of Deficit — Revenue, Fiscal, Primary deficit — implications", subject:"economy", youtube:"Fiscal deficit UPSC" },
+  { month:6, week:23, day:157, topic:"Taxation — Direct vs Indirect taxes, GST basics, GST council", subject:"economy", youtube:"GST UPSC taxation" },
+  { month:6, week:23, day:158, topic:"Public Debt — Internal, External, debt-to-GDP ratio", subject:"economy", youtube:"Public debt India UPSC" },
+  { month:6, week:23, day:159, topic:"Subsidies — Types, food, fertilizer, fuel subsidies — reforms needed", subject:"economy", youtube:"Subsidies India UPSC" },
+  { month:6, week:23, day:160, topic:"FRBM Act, Disinvestment policy, PPP model, NMP", subject:"economy", youtube:"FRBM Act UPSC disinvestment" },
+  { month:6, week:23, day:161, topic:"SUNDAY REVISION — Revise Week 23 notes", subject:"revision", youtube:"Fiscal policy UPSC revision" },
+  { month:6, week:24, day:162, topic:"Agriculture — Green Revolution, issues, MSP, Minimum Support Price", subject:"economy", youtube:"Green Revolution UPSC MSP" },
+  { month:6, week:24, day:163, topic:"Agriculture Schemes — PM Kisan, Crop Insurance, e-NAM, APMC", subject:"economy", youtube:"Agriculture schemes UPSC 2025" },
+  { month:6, week:24, day:164, topic:"Industry — Sectors, Make in India, PLI scheme, MSMEs", subject:"economy", youtube:"Make in India UPSC" },
+  { month:6, week:24, day:165, topic:"Infrastructure — Roads, Railways, Ports, Smart Cities, logistics", subject:"economy", youtube:"Infrastructure India UPSC" },
+  { month:6, week:24, day:166, topic:"Foreign Trade — FDI, FPI, Trade deficit, Current account, Balance of payment", subject:"economy", youtube:"Foreign trade India UPSC FDI" },
+  { month:6, week:24, day:167, topic:"International organisations — WTO, IMF, World Bank, BRICS, ADB", subject:"economy", youtube:"WTO IMF World Bank UPSC" },
+  { month:6, week:24, day:168, topic:"MONTH 6 MOCK TEST — 60 MCQs Economy + Revision", subject:"revision", youtube:"Economy UPSC mock test" },
+
+  // MONTH 7 — Environment + S&T
+  { month:7, week:25, day:169, topic:"Ecology basics — Food chain, Food web, Ecosystem types, Energy flow", subject:"environment", youtube:"Ecology basics UPSC" },
+  { month:7, week:25, day:170, topic:"Biodiversity — Types, Hotspots (34 global, 4 in India), Endemism", subject:"environment", youtube:"Biodiversity hotspots UPSC India" },
+  { month:7, week:25, day:171, topic:"India's Biodiversity — Flora, Fauna, endemic species map", subject:"environment", youtube:"India biodiversity UPSC" },
+  { month:7, week:25, day:172, topic:"National Parks & Wildlife Sanctuaries — Project Tiger, Project Elephant", subject:"environment", youtube:"National Parks India UPSC map" },
+  { month:7, week:25, day:173, topic:"Biosphere Reserves, Ramsar sites, UNESCO World Heritage sites India", subject:"environment", youtube:"Biosphere reserves UPSC Ramsar" },
+  { month:7, week:25, day:174, topic:"IUCN Red List — Categories, India's critically endangered species", subject:"environment", youtube:"IUCN Red List UPSC" },
+  { month:7, week:25, day:175, topic:"SUNDAY REVISION — Revise Week 25 notes", subject:"revision", youtube:"Ecology biodiversity UPSC revision" },
+  { month:7, week:26, day:176, topic:"Climate Change — Greenhouse gases, Global warming, Carbon cycle, IPCC", subject:"environment", youtube:"Climate change UPSC IPCC" },
+  { month:7, week:26, day:177, topic:"International Conventions — Paris Agreement, CBD, Kyoto Protocol, CITES", subject:"environment", youtube:"Paris Agreement UPSC" },
+  { month:7, week:26, day:178, topic:"Pollution — Air, Water, Soil, Noise, Light — causes, laws, effects", subject:"environment", youtube:"Pollution laws India UPSC" },
+  { month:7, week:26, day:179, topic:"Environmental Laws — Wildlife Protection Act, Forest Act, EPA 1986", subject:"environment", youtube:"Environmental laws UPSC" },
+  { month:7, week:26, day:180, topic:"Ozone layer depletion, Acid rain, Eutrophication, Biomagnification", subject:"environment", youtube:"Ozone layer UPSC acid rain" },
+  { month:7, week:26, day:181, topic:"Renewable Energy — Solar, Wind, Hydro, Biomass, Tidal — India targets", subject:"environment", youtube:"Renewable energy UPSC India" },
+  { month:7, week:26, day:182, topic:"SUNDAY REVISION — Revise Week 26 notes", subject:"revision", youtube:"Environment laws UPSC revision" },
+  { month:7, week:27, day:183, topic:"Space Technology — ISRO missions, Chandrayaan, Gaganyaan, satellites", subject:"science", youtube:"ISRO missions UPSC 2025" },
+  { month:7, week:27, day:184, topic:"Defence Technology — DRDO, missiles (Agni, Prithvi, BrahMos, Astra)", subject:"science", youtube:"DRDO missiles UPSC" },
+  { month:7, week:27, day:185, topic:"Nuclear Technology — Reactors, India's 3-stage nuclear programme, NSG", subject:"science", youtube:"Nuclear technology UPSC India" },
+  { month:7, week:27, day:186, topic:"Biotechnology — GMO, CRISPR gene editing, vaccines, stem cells", subject:"science", youtube:"Biotechnology UPSC" },
+  { month:7, week:27, day:187, topic:"Nanotechnology, Robotics — Basics and real-world applications", subject:"science", youtube:"Nanotechnology UPSC" },
+  { month:7, week:27, day:188, topic:"Artificial Intelligence, Machine Learning — Basics and India's AI policy", subject:"science", youtube:"Artificial Intelligence UPSC" },
+  { month:7, week:27, day:189, topic:"SUNDAY REVISION — Revise Week 27 notes", subject:"revision", youtube:"Science technology UPSC revision" },
+  { month:7, week:28, day:190, topic:"Cybersecurity — Threats, Laws, IT Act 2000, CERT-In, data protection", subject:"science", youtube:"Cybersecurity UPSC IT Act" },
+  { month:7, week:28, day:191, topic:"Communication Technology — 5G, Internet, Optical fiber, satellite internet", subject:"science", youtube:"5G technology UPSC" },
+  { month:7, week:28, day:192, topic:"Health Technology — mRNA vaccines, Cancer treatment, gene therapy", subject:"science", youtube:"Health technology UPSC" },
+  { month:7, week:28, day:193, topic:"Agriculture Technology — Precision farming, Drones, Hydroponics, IoT", subject:"science", youtube:"Agriculture technology UPSC" },
+  { month:7, week:28, day:194, topic:"Indigenous tech — Atmanirbhar Bharat in defence and technology", subject:"science", youtube:"Atmanirbhar Bharat tech UPSC" },
+  { month:7, week:28, day:195, topic:"Practice — 30 MCQs Environment + Science & Technology", subject:"science", youtube:"Environment Science Technology UPSC MCQ" },
+  { month:7, week:28, day:196, topic:"MONTH 7 MOCK TEST — 60 MCQs Env + S&T + Revision", subject:"revision", youtube:"Environment science technology UPSC mock" },
+
+  // MONTH 8 — Current Affairs + CSAT
+  { month:8, week:29, day:197, topic:"Government Schemes 2024–25 — All major new schemes launched", subject:"current", youtube:"Government schemes 2025 UPSC" },
+  { month:8, week:29, day:198, topic:"Economy News — Union Budget 2025, GDP data, RBI decisions", subject:"current", youtube:"Union Budget 2025 UPSC" },
+  { month:8, week:29, day:199, topic:"Social Issues — Education schemes, Health schemes, Women empowerment", subject:"current", youtube:"Social schemes India 2025 UPSC" },
+  { month:8, week:29, day:200, topic:"Agriculture News — Crop situation, MSP revision, food security 2025", subject:"current", youtube:"Agriculture current affairs UPSC 2025" },
+  { month:8, week:29, day:201, topic:"Environment News — COP30, pollution data, natural disasters 2024–25", subject:"current", youtube:"Environment current affairs 2025 UPSC" },
+  { month:8, week:29, day:202, topic:"Science & Space News — ISRO, DRDO, technology launches 2024–25", subject:"current", youtube:"ISRO latest news UPSC 2025" },
+  { month:8, week:29, day:203, topic:"SUNDAY REVISION — Revise Week 29 notes", subject:"revision", youtube:"Current affairs India UPSC revision 2025" },
+  { month:8, week:30, day:204, topic:"India's Foreign Policy — Key bilateral relations, neighborhood first", subject:"current", youtube:"India foreign policy 2025 UPSC" },
+  { month:8, week:30, day:205, topic:"India-China, India-Pakistan, India-Bangladesh recent developments", subject:"current", youtube:"India China relations UPSC 2025" },
+  { month:8, week:30, day:206, topic:"Global Geopolitics — Russia-Ukraine, Middle East, Gaza, Taiwan", subject:"current", youtube:"Geopolitics UPSC 2025" },
+  { month:8, week:30, day:207, topic:"International organisations news — G20, SCO, QUAD, BRICS 2024–25", subject:"current", youtube:"G20 SCO QUAD UPSC 2025" },
+  { month:8, week:30, day:208, topic:"Awards & Rankings — Nobel Prize 2024, Global Hunger Index, reports", subject:"current", youtube:"Nobel Prize 2024 UPSC" },
+  { month:8, week:30, day:209, topic:"Sports, Summits, Important Days — Olympics 2024, key summits", subject:"current", youtube:"Important summits 2025 UPSC" },
+  { month:8, week:30, day:210, topic:"SUNDAY REVISION — Revise Week 30 notes", subject:"revision", youtube:"Current affairs world UPSC revision 2025" },
+  { month:8, week:31, day:211, topic:"CSAT — Reading Comprehension strategies, speed reading techniques", subject:"csat", youtube:"CSAT reading comprehension UPSC" },
+  { month:8, week:31, day:212, topic:"CSAT — Reading Comprehension practice passages (5 passages)", subject:"csat", youtube:"CSAT comprehension practice 2025" },
+  { month:8, week:31, day:213, topic:"CSAT — Basic Maths — Percentage, Ratio, Average, Profit/Loss", subject:"csat", youtube:"CSAT maths UPSC basic" },
+  { month:8, week:31, day:214, topic:"CSAT — Basic Maths — Time/Speed/Distance, Work and Time problems", subject:"csat", youtube:"CSAT time speed distance UPSC" },
+  { month:8, week:31, day:215, topic:"CSAT — Logical Reasoning — Syllogisms, Blood relations, Direction sense", subject:"csat", youtube:"CSAT logical reasoning UPSC" },
+  { month:8, week:31, day:216, topic:"CSAT — Data Interpretation — Bar graphs, pie charts, tables, line graphs", subject:"csat", youtube:"CSAT data interpretation UPSC" },
+  { month:8, week:31, day:217, topic:"SUNDAY REVISION — Revise Week 31 notes", subject:"revision", youtube:"CSAT revision UPSC" },
+  { month:8, week:32, day:218, topic:"CSAT Full Paper Practice — 80 MCQs timed exactly 2 hours", subject:"csat", youtube:"CSAT full mock test UPSC" },
+  { month:8, week:32, day:219, topic:"Analyse CSAT result — identify and fix weak areas specifically", subject:"csat", youtube:"CSAT analysis UPSC" },
+  { month:8, week:32, day:220, topic:"Current Affairs — Last 3 months quick revision (all subjects)", subject:"current", youtube:"Current affairs quick revision UPSC 2025" },
+  { month:8, week:32, day:221, topic:"Static GK — Books & Authors, Capitals, Currencies, First in India", subject:"current", youtube:"Static GK UPSC" },
+  { month:8, week:32, day:222, topic:"Government Reports — Economic Survey, India State of Forest Report 2024", subject:"current", youtube:"Economic Survey UPSC 2025" },
+  { month:8, week:32, day:223, topic:"Practice — 30 MCQs Mixed current affairs", subject:"current", youtube:"Mixed current affairs UPSC MCQ 2025" },
+  { month:8, week:32, day:224, topic:"MONTH 8 MOCK TEST — Full 100 MCQs GS Paper 1 timed", subject:"revision", youtube:"UPSC Prelims full mock test 2025" },
+
+  // MONTH 9 — Revision + Mock Tests
+  { month:9, week:33, day:225, topic:"Rapid Revision — Ancient History (from your handwritten notes)", subject:"revision", youtube:"Ancient India rapid revision UPSC" },
+  { month:9, week:33, day:226, topic:"Rapid Revision — Medieval History (from your handwritten notes)", subject:"revision", youtube:"Medieval India rapid revision UPSC" },
+  { month:9, week:33, day:227, topic:"Rapid Revision — Modern History (from your handwritten notes)", subject:"revision", youtube:"Modern History rapid revision UPSC" },
+  { month:9, week:33, day:228, topic:"Rapid Revision — Physical Geography (atmosphere, oceans, landforms)", subject:"revision", youtube:"Physical geography rapid revision UPSC" },
+  { month:9, week:33, day:229, topic:"Rapid Revision — Indian Geography (rivers, climate, soils, agriculture)", subject:"revision", youtube:"Indian geography rapid revision UPSC" },
+  { month:9, week:33, day:230, topic:"Mock Test — 50 MCQs History + Geography (timed)", subject:"revision", youtube:"History geography UPSC mock test" },
+  { month:9, week:33, day:231, topic:"SUNDAY — Analyse mock results + note weak topics for extra revision", subject:"revision", youtube:"UPSC mock analysis strategy" },
+  { month:9, week:34, day:232, topic:"Rapid Revision — Constitution Basics + Fundamental Rights + DPSP", subject:"revision", youtube:"Constitution revision UPSC" },
+  { month:9, week:34, day:233, topic:"Rapid Revision — Parliament + Executive + Judiciary", subject:"revision", youtube:"Parliament judiciary revision UPSC" },
+  { month:9, week:34, day:234, topic:"Rapid Revision — State Govt + Constitutional Bodies + Local Governance", subject:"revision", youtube:"State government revision UPSC" },
+  { month:9, week:34, day:235, topic:"Rapid Revision — Economy Basics + Banking + Monetary Policy", subject:"revision", youtube:"Economy basics revision UPSC" },
+  { month:9, week:34, day:236, topic:"Rapid Revision — Budget + Agriculture + Trade + International orgs", subject:"revision", youtube:"Economy revision UPSC" },
+  { month:9, week:34, day:237, topic:"Mock Test — 50 MCQs Polity + Economy (timed)", subject:"revision", youtube:"Polity economy UPSC mock test" },
+  { month:9, week:34, day:238, topic:"SUNDAY — Analyse + Revise weak areas from this week", subject:"revision", youtube:"UPSC mock analysis" },
+  { month:9, week:35, day:239, topic:"Rapid Revision — Ecology + Biodiversity + Protected areas", subject:"revision", youtube:"Ecology biodiversity revision UPSC" },
+  { month:9, week:35, day:240, topic:"Rapid Revision — Environmental issues + International conventions + Laws", subject:"revision", youtube:"Environment revision UPSC" },
+  { month:9, week:35, day:241, topic:"Rapid Revision — Space + Defence + Biotech + AI + Cybersecurity", subject:"revision", youtube:"Science technology revision UPSC" },
+  { month:9, week:35, day:242, topic:"Rapid Revision — Current Affairs India (schemes, economy, social)", subject:"revision", youtube:"Current affairs India revision UPSC 2025" },
+  { month:9, week:35, day:243, topic:"Rapid Revision — Current Affairs World (geopolitics, organisations)", subject:"revision", youtube:"Current affairs world revision UPSC 2025" },
+  { month:9, week:35, day:244, topic:"Mock Test — 50 MCQs Env + S&T + Current Affairs (timed)", subject:"revision", youtube:"Environment science current affairs mock" },
+  { month:9, week:35, day:245, topic:"SUNDAY — Analyse + Final weak areas list", subject:"revision", youtube:"UPSC final revision strategy" },
+  { month:9, week:36, day:246, topic:"FULL MOCK TEST 1 — Complete 100 MCQs GS Paper 1 (exactly 2 hours)", subject:"revision", youtube:"UPSC Prelims full mock 2025" },
+  { month:9, week:36, day:247, topic:"Analyse Mock Test 1 — subject-wise score card + weak topic list", subject:"revision", youtube:"UPSC mock test analysis" },
+  { month:9, week:36, day:248, topic:"FULL MOCK TEST 2 — Complete 100 MCQs GS Paper 1 (exactly 2 hours)", subject:"revision", youtube:"UPSC Prelims mock test 2 2025" },
+  { month:9, week:36, day:249, topic:"Analyse Mock Test 2 + Revise weakest subject deeply", subject:"revision", youtube:"UPSC weak areas revision" },
+  { month:9, week:36, day:250, topic:"CSAT Mock — 80 MCQs exactly 2 hours — ensure you score 66+", subject:"csat", youtube:"CSAT final mock UPSC" },
+  { month:9, week:36, day:251, topic:"Final rapid revision — Read all your 1-page chapter summaries", subject:"revision", youtube:"UPSC final day revision" },
+  { month:9, week:36, day:252, topic:"SUNDAY — Complete rest + light newspaper only", subject:"revision", youtube:"UPSC preparation mindset" },
+  { month:9, week:37, day:253, topic:"Revise only handwritten notes — History", subject:"revision", youtube:"" },
+  { month:9, week:37, day:254, topic:"Revise only handwritten notes — Geography + Environment", subject:"revision", youtube:"" },
+  { month:9, week:37, day:255, topic:"Revise only handwritten notes — Polity + Economy", subject:"revision", youtube:"" },
+  { month:9, week:37, day:256, topic:"Previous Year Questions — Last 5 years — History + Geography", subject:"revision", youtube:"UPSC PYQ History Geography" },
+  { month:9, week:37, day:257, topic:"Previous Year Questions — Last 5 years — Polity + Economy", subject:"revision", youtube:"UPSC PYQ Polity Economy" },
+  { month:9, week:37, day:258, topic:"Previous Year Questions — Last 5 years — Environment + S&T", subject:"revision", youtube:"UPSC PYQ Environment Science" },
+  { month:9, week:37, day:259, topic:"SUNDAY — Full rest + light current affairs only", subject:"revision", youtube:"" },
+  { month:9, week:38, day:260, topic:"Weak subject deep revision — Day 1", subject:"revision", youtube:"" },
+  { month:9, week:38, day:261, topic:"Weak subject deep revision — Day 2", subject:"revision", youtube:"" },
+  { month:9, week:38, day:262, topic:"Final Mock Test 3 — Full 100 MCQs Paper 1", subject:"revision", youtube:"UPSC final mock test 3" },
+  { month:9, week:38, day:263, topic:"Final Mock Test 4 — Full 100 MCQs Paper 1", subject:"revision", youtube:"UPSC final mock test 4" },
+  { month:9, week:38, day:264, topic:"Error analysis — Final mistakes list — never repeat these", subject:"revision", youtube:"" },
+  { month:9, week:38, day:265, topic:"Light current affairs — last 1 month newspaper revision", subject:"current", youtube:"Current affairs last month UPSC 2025" },
+  { month:9, week:38, day:266, topic:"Light current affairs — schemes + international news final scan", subject:"current", youtube:"" },
+  { month:9, week:38, day:267, topic:"Static GK quick scan — capitals, books, awards, firsts", subject:"revision", youtube:"" },
+  { month:9, week:38, day:268, topic:"REST DAY — No study. Sleep well. Eat well. Stay calm.", subject:"revision", youtube:"" },
+  { month:9, week:38, day:269, topic:"Light notes scan only — carry only 1-page summaries", subject:"revision", youtube:"" },
+  { month:9, week:38, day:270, topic:"🏛️ EXAM DAY — You are ready. Attempt confidently. Jai Hind!", subject:"revision", youtube:"" },
+];
+
+const MONTH_INFO = [
+  { num:1, name:"Ancient History", desc:"Prehistoric India → Indus Valley → Vedic → Mauryan → Gupta Empire", color:"#a78bfa" },
+  { num:2, name:"Medieval History", desc:"Delhi Sultanate → Bhakti/Sufi → Mughal Empire → Art & Architecture", color:"#a78bfa" },
+  { num:3, name:"Modern History", desc:"British Era → Social Reforms → Gandhi → Independence & Partition", color:"#a78bfa" },
+  { num:4, name:"Geography", desc:"Physical Geography → Climate → Oceans → Indian Geography complete", color:"#34d399" },
+  { num:5, name:"Indian Polity", desc:"Constitution → Parliament → Judiciary → Local Governance", color:"#60a5fa" },
+  { num:6, name:"Indian Economy", desc:"Basics → Banking → Budget → Agriculture → Trade", color:"#fbbf24" },
+  { num:7, name:"Environment + S&T", desc:"Ecology → Biodiversity → Climate Laws → Space → AI → Biotech", color:"#4ade80" },
+  { num:8, name:"Current Affairs + CSAT", desc:"2024–25 news → Schemes → World affairs → CSAT prep", color:"#fb923c" },
+  { num:9, name:"Full Revision + Mocks", desc:"Rapid revision of all subjects → Full mock tests → Exam ready!", color:"#c084fc" },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let config = { username:'', repo:'', token:'', offline:false };
+let completed = {}; // { "day_1": true, ... }
+let currentMonth = 1;
+let fileSHA = null;
+
+// ============================================================
+// INIT
+// ============================================================
+window.onload = () => {
+  const saved = localStorage.getItem('upsc_config');
+  if (saved) {
+    config = JSON.parse(saved);
+    initApp();
+  }
+};
+
+async function setupGitHub() {
+  const u = document.getElementById('gh-username').value.trim();
+  const r = document.getElementById('gh-repo').value.trim();
+  const t = document.getElementById('gh-token').value.trim();
+  if (!u || !r || !t) { showToast('⚠️ Fill all 3 fields'); return; }
+  config = { username:u, repo:r, token:t, offline:false };
+  showLoading('Connecting to GitHub...');
+  const ok = await loadFromGitHub();
+  hideLoading();
+  if (ok !== false) {
+    localStorage.setItem('upsc_config', JSON.stringify(config));
+    initApp();
+  } else {
+    showToast('❌ Could not connect. Check username, repo & token.');
+  }
+}
+
+function startOffline() {
+  config = { offline:true };
+  const local = localStorage.getItem('upsc_progress');
+  if (local) completed = JSON.parse(local);
+  initApp();
+}
+
+function initApp() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  buildUI();
+  updateStats();
+  setTimeout(goToToday, 300);
+}
+
+// ============================================================
+// GITHUB API
+// ============================================================
+async function loadFromGitHub() {
+  try {
+    const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/upsc_progress.json`;
+    const res = await fetch(url, { headers: { Authorization:`token ${config.token}`, Accept:'application/vnd.github.v3+json' } });
+    if (res.status === 404) { completed = {}; fileSHA = null; return true; }
+    if (!res.ok) return false;
+    const data = await res.json();
+    fileSHA = data.sha;
+    const content = atob(data.content.replace(/\n/g,''));
+    completed = JSON.parse(content);
+    return true;
+  } catch(e) { return false; }
+}
+
+async function syncToGitHub() {
+  if (config.offline) { showToast('📴 Offline mode — saved locally'); return; }
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.classList.add('syncing');
+  lbl.textContent = 'Syncing...';
+  try {
+    const content = btoa(JSON.stringify(completed, null, 2));
+    const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/upsc_progress.json`;
+    const body = { message:`UPSC progress update — ${new Date().toLocaleDateString('en-IN')}`, content };
+    if (fileSHA) body.sha = fileSHA;
+    const res = await fetch(url, { method:'PUT', headers:{ Authorization:`token ${config.token}`, 'Content-Type':'application/json' }, body: JSON.stringify(body) });
+    if (res.ok) {
+      const data = await res.json();
+      fileSHA = data.content.sha;
+      dot.classList.remove('syncing','error');
+      lbl.textContent = 'Synced ✓';
+      showToast('✅ Synced to GitHub!');
+      setTimeout(()=>{ lbl.textContent='Sync'; },3000);
+    } else {
+      throw new Error('sync failed');
+    }
+  } catch(e) {
+    dot.classList.remove('syncing');
+    dot.classList.add('error');
+    lbl.textContent = 'Failed';
+    showToast('❌ Sync failed. Check internet/token.');
+    setTimeout(()=>{ dot.classList.remove('error'); lbl.textContent='Sync'; },4000);
+  }
+}
+
+// ============================================================
+// BUILD UI
+// ============================================================
+function buildUI() {
+  const tabsEl = document.getElementById('month-tabs');
+  const containerEl = document.getElementById('months-container');
+  tabsEl.innerHTML = '';
+  containerEl.innerHTML = '';
+
+  MONTH_INFO.forEach(m => {
+    // Tab
+    const tab = document.createElement('div');
+    tab.className = 'month-tab' + (m.num === 1 ? ' active' : '');
+    tab.id = `tab-${m.num}`;
+    tab.innerHTML = `M${m.num} <span class="tab-check"></span>`;
+    tab.onclick = () => switchMonth(m.num);
+    tabsEl.appendChild(tab);
+
+    // Month section
+    const days = SCHEDULE.filter(d => d.month === m.num);
+    const weeks = [...new Set(days.map(d=>d.week))];
+
+    const section = document.createElement('div');
+    section.className = 'month-section' + (m.num === 1 ? ' active' : '');
+    section.id = `month-${m.num}`;
+
+    section.innerHTML = `
+      <div class="month-header">
+        <div class="month-number">Month ${m.num} of 9</div>
+        <div class="month-name">${m.name}</div>
+        <div class="month-desc">${m.desc}</div>
+        <div class="month-progress">
+          <div class="month-progress-bar"><div class="month-progress-fill" id="mpfill-${m.num}" style="width:0%"></div></div>
+          <div class="month-progress-text" id="mptext-${m.num}">0/${days.length}</div>
+        </div>
+      </div>
+    `;
+
+    weeks.forEach(w => {
+      const wdays = days.filter(d=>d.week===w);
+      const weekDiv = document.createElement('div');
+      weekDiv.className = 'week-section';
+      weekDiv.innerHTML = `<div class="week-label">Week ${w}</div>`;
+      wdays.forEach(d => {
+        weekDiv.appendChild(buildDayCard(d));
+      });
+      section.appendChild(weekDiv);
+    });
+
+    containerEl.appendChild(section);
+  });
+
+  refreshAllCards();
+}
+
+function buildDayCard(d) {
+  const card = document.createElement('div');
+  card.id = `card-day-${d.day}`;
+  card.className = `day-card subject-${d.subject}`;
+  if (d.subject === 'revision' && d.day % 7 === 0) card.classList.add('sunday');
+
+  const tagClass = `tag-${d.subject}`;
+  const subjectLabel = d.subject.charAt(0).toUpperCase() + d.subject.slice(1);
+
+  let ytLink = '';
+  if (d.youtube) {
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(d.youtube)}`;
+    ytLink = `<a class="day-youtube" href="${url}" target="_blank" onclick="event.stopPropagation()">▶ YouTube: ${d.youtube}</a>`;
+  }
+
+  card.innerHTML = `
+    <div class="day-checkbox">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M2 7L5.5 10.5L12 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="day-info">
+      <div class="day-meta">
+        <span class="day-number">Day ${d.day}</span>
+        <span class="day-tag ${tagClass}">${subjectLabel}</span>
+        <span class="today-badge" id="today-badge-${d.day}" style="display:none">TODAY</span>
+      </div>
+      <div class="day-topic">${d.topic}</div>
+      ${ytLink}
+    </div>
+  `;
+
+  card.onclick = () => toggleDay(d.day);
+  return card;
+}
+
+// ============================================================
+// TOGGLE & REFRESH
+// ============================================================
+function toggleDay(dayNum) {
+  const key = `day_${dayNum}`;
+  completed[key] = !completed[key];
+  if (!config.offline) {
+    localStorage.setItem('upsc_progress', JSON.stringify(completed));
+  } else {
+    localStorage.setItem('upsc_progress', JSON.stringify(completed));
+  }
+  refreshCard(dayNum);
+  updateStats();
+  if (completed[key]) {
+    showToast('✅ Day ' + dayNum + ' completed! Keep going! 💪');
+    // Auto sync after each tick
+    if (!config.offline) setTimeout(syncToGitHub, 1000);
+  } else {
+    showToast('↩️ Day ' + dayNum + ' marked incomplete');
+  }
+}
+
+function refreshCard(dayNum) {
+  const card = document.getElementById(`card-day-${dayNum}`);
+  if (!card) return;
+  const key = `day_${dayNum}`;
+  if (completed[key]) card.classList.add('completed');
+  else card.classList.remove('completed');
+}
+
+function refreshAllCards() {
+  SCHEDULE.forEach(d => refreshCard(d.day));
+  highlightToday();
+  updateMonthProgress();
+}
+
+function highlightToday() {
+  // Find today = first uncompleted day
+  const todayDay = SCHEDULE.find(d => !completed[`day_${d.day}`]);
+  SCHEDULE.forEach(d => {
+    const badge = document.getElementById(`today-badge-${d.day}`);
+    const card = document.getElementById(`card-day-${d.day}`);
+    if (!badge || !card) return;
+    if (todayDay && d.day === todayDay.day) {
+      badge.style.display = 'inline-block';
+      card.classList.add('today');
+    } else {
+      badge.style.display = 'none';
+      card.classList.remove('today');
+    }
+  });
+}
+
+function updateMonthProgress() {
+  MONTH_INFO.forEach(m => {
+    const days = SCHEDULE.filter(d => d.month === m.num);
+    const done = days.filter(d => completed[`day_${d.day}`]).length;
+    const pct = Math.round((done / days.length) * 100);
+    const fill = document.getElementById(`mpfill-${m.num}`);
+    const text = document.getElementById(`mptext-${m.num}`);
+    if (fill) fill.style.width = pct + '%';
+    if (text) text.textContent = `${done}/${days.length}`;
+
+    // Update tab check
+    const tab = document.getElementById(`tab-${m.num}`);
+    if (tab) {
+      const check = tab.querySelector('.tab-check');
+      if (pct === 100) check.textContent = '✓';
+      else if (pct > 0) check.textContent = `${pct}%`;
+      else check.textContent = '';
+    }
+  });
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  const totalDone = Object.values(completed).filter(Boolean).length;
+  const totalDays = 270;
+  const pct = Math.round((totalDone / totalDays) * 100);
+
+  document.getElementById('overall-count').textContent = `${totalDone} / ${totalDays} days`;
+  document.getElementById('overall-bar').style.width = pct + '%';
+  document.getElementById('stat-done').textContent = totalDone;
+  document.getElementById('stat-left').textContent = totalDays - totalDone;
+
+  // Streak — consecutive days from start
+  let streak = 0;
+  for (let i = 1; i <= totalDays; i++) {
+    if (completed[`day_${i}`]) streak++;
+    else break;
+  }
+  document.getElementById('stat-streak').textContent = streak;
+
+  updateMonthProgress();
+  highlightToday();
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function switchMonth(num) {
+  document.querySelectorAll('.month-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.month-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`month-${num}`).classList.add('active');
+  document.getElementById(`tab-${num}`).classList.add('active');
+  currentMonth = num;
+}
+
+function goToToday() {
+  const todayDay = SCHEDULE.find(d => !completed[`day_${d.day}`]);
+  if (!todayDay) { showToast('🎉 All 270 days complete! You are a champion!'); return; }
+  switchMonth(todayDay.month);
+  setTimeout(() => {
+    const card = document.getElementById(`card-day-${todayDay.day}`);
+    if (card) card.scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 100);
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+function showLoading(msg) {
+  document.getElementById('loading-text').textContent = msg || 'Loading...';
+  document.getElementById('loading').style.display = 'flex';
+}
+function hideLoading() {
+  document.getElementById('loading').style.display = 'none';
+}
+</script>
+</body>
+</html>
